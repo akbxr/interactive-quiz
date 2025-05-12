@@ -13,6 +13,7 @@ export interface QuizQuestion {
   multiSelect?: boolean
   minSelections?: number
   requireDateOfBirth?: boolean
+  questionType?: 'standard' | 'dob' | 'zodiac'
   options: QuizOption[]
 }
 

@@ -5,14 +5,22 @@ import type { QuizQuestion } from "@/lib/types"
 import { cn } from "@/lib/utils"
 import { Check } from "lucide-react"
 import DateOfBirth from "@/components/date-of-birth"
+import ZodiacSignDisplay from "@/components/zodiac-sign-display"
 
 interface QuestionCardProps {
   question: QuizQuestion
   selectedOptions: string[]
   onOptionSelect: (questionId: string, optionId: string, selected: boolean) => void
+  zodiacData?: {
+    name: string;
+    symbol: string;
+    dates: string;
+    element?: string;
+    traits?: string[];
+  } | null
 }
 
-export default function QuestionCard({ question, selectedOptions, onOptionSelect }: QuestionCardProps) {
+export default function QuestionCard({ question, selectedOptions, onOptionSelect, zodiacData }: QuestionCardProps) {
   const [dateOfBirth, setDateOfBirth] = useState<{ day: string; month: string; year: string }>({
     day: "",
     month: "",
@@ -86,12 +94,23 @@ export default function QuestionCard({ question, selectedOptions, onOptionSelect
             className="rounded-lg border p-6 bg-white"
           >
             <h3 className="text-sm font-medium mb-3 text-center text-muted-foreground">
-              Select your date of birth to reveal your zodiac sign
+              Pilih tanggal lahir Anda
             </h3>
             <DateOfBirth 
               value={dateOfBirth}
               onChange={handleDateOfBirthChange} 
             />
+          </motion.div>
+        ) : question.questionType === "zodiac" && zodiacData ? (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <ZodiacSignDisplay zodiacSign={zodiacData} />
+            <div className="mt-4 text-center">
+              <p className="text-sm text-muted-foreground">Klik 'Lanjutkan' untuk melanjutkan ke pertanyaan berikutnya</p>
+            </div>
           </motion.div>
         ) : (
           // For other questions, show normal options

@@ -9,6 +9,51 @@ import QuestionCard from "@/components/question-card"
 import ResultsScreen from "@/components/results-screen"
 import { useQuizState } from "@/hooks/use-quiz-state"
 
+// Helper function to determine zodiac sign from day and month
+function getZodiacSign(day: number, month: number): {
+  name: string;
+  symbol: string;
+  dates: string;
+  element?: string;
+  traits?: string[];
+} | null {
+  if (!day || !month) return null;
+  
+  const zodiacSigns: Array<{
+    name: string;
+    symbol: string;
+    dates: string;
+    element: string;
+    traits: string[];
+  }> = [
+    { name: "Capricorn", symbol: "♑", dates: "Dec 22 - Jan 19", element: "Earth", traits: ["Ambitious", "Responsible", "Practical"] },
+    { name: "Aquarius", symbol: "♒", dates: "Jan 20 - Feb 18", element: "Air", traits: ["Independent", "Original", "Humanitarian"] },
+    { name: "Pisces", symbol: "♓", dates: "Feb 19 - Mar 20", element: "Water", traits: ["Compassionate", "Intuitive", "Imaginative"] },
+    { name: "Aries", symbol: "♈", dates: "Mar 21 - Apr 19", element: "Fire", traits: ["Courageous", "Determined", "Confident"] },
+    { name: "Taurus", symbol: "♉", dates: "Apr 20 - May 20", element: "Earth", traits: ["Reliable", "Patient", "Practical"] },
+    { name: "Gemini", symbol: "♊", dates: "May 21 - Jun 20", element: "Air", traits: ["Adaptable", "Curious", "Communicative"] },
+    { name: "Cancer", symbol: "♋", dates: "Jun 21 - Jul 22", element: "Water", traits: ["Intuitive", "Emotional", "Protective"] },
+    { name: "Leo", symbol: "♌", dates: "Jul 23 - Aug 22", element: "Fire", traits: ["Creative", "Passionate", "Generous"] },
+    { name: "Virgo", symbol: "♍", dates: "Aug 23 - Sep 22", element: "Earth", traits: ["Analytical", "Practical", "Meticulous"] },
+    { name: "Libra", symbol: "♎", dates: "Sep 23 - Oct 22", element: "Air", traits: ["Diplomatic", "Fair-minded", "Social"] },
+    { name: "Scorpio", symbol: "♏", dates: "Oct 23 - Nov 21", element: "Water", traits: ["Passionate", "Determined", "Intuitive"] },
+    { name: "Sagittarius", symbol: "♐", dates: "Nov 22 - Dec 21", element: "Fire", traits: ["Generous", "Idealistic", "Humorous"] }
+  ];
+  
+  if ((month === 1 && day >= 20) || (month === 2 && day <= 18)) return zodiacSigns[1]; // Aquarius
+  if ((month === 2 && day >= 19) || (month === 3 && day <= 20)) return zodiacSigns[2]; // Pisces
+  if ((month === 3 && day >= 21) || (month === 4 && day <= 19)) return zodiacSigns[3]; // Aries
+  if ((month === 4 && day >= 20) || (month === 5 && day <= 20)) return zodiacSigns[4]; // Taurus
+  if ((month === 5 && day >= 21) || (month === 6 && day <= 20)) return zodiacSigns[5]; // Gemini
+  if ((month === 6 && day >= 21) || (month === 7 && day <= 22)) return zodiacSigns[6]; // Cancer
+  if ((month === 7 && day >= 23) || (month === 8 && day <= 22)) return zodiacSigns[7]; // Leo
+  if ((month === 8 && day >= 23) || (month === 9 && day <= 22)) return zodiacSigns[8]; // Virgo
+  if ((month === 9 && day >= 23) || (month === 10 && day <= 22)) return zodiacSigns[9]; // Libra
+  if ((month === 10 && day >= 23) || (month === 11 && day <= 21)) return zodiacSigns[10]; // Scorpio
+  if ((month === 11 && day >= 22) || (month === 12 && day <= 21)) return zodiacSigns[11]; // Sagittarius
+  return zodiacSigns[0]; // Capricorn
+}
+
 interface QuizProps {
   quizData: QuizData
   initialGender?: string
@@ -31,6 +76,7 @@ export default function Quiz({ quizData, initialGender }: QuizProps) {
   
   const [progress, setProgress] = useState(0)
   const [result, setResultData] = useState<QuizResult | null>(null)
+  const [zodiacData, setZodiacData] = useState<{name: string; symbol: string; dates: string; element?: string; traits?: string[]} | null>(null)
 
   const currentQuestion = quizData.questions[currentQuestionIndex]
 
@@ -53,6 +99,19 @@ export default function Quiz({ quizData, initialGender }: QuizProps) {
     }
   }, [resultId, quizData.results])
 
+  // Calculate zodiac sign when date of birth is entered 
+  useEffect(() => {
+    if (answers["q2"]) {
+      const dobOption = answers["q2"].find((option: string) => option.startsWith('dob_'))
+      if (dobOption) {
+        const [_, dateString] = dobOption.split('_')
+        const [year, month, day] = dateString.split('-')
+        const zodiacSign = getZodiacSign(parseInt(day), parseInt(month))
+        setZodiacData(zodiacSign)
+      }
+    }
+  }, [answers]);
+
   useEffect(() => {
     // Calculate progress percentage
     setProgress(((currentQuestionIndex + 1) / quizData.questions.length) * 100)
@@ -65,6 +124,14 @@ export default function Quiz({ quizData, initialGender }: QuizProps) {
 
   const handleContinue = () => {
     if (currentQuestionIndex < quizData.questions.length - 1) {
+      // If current question is date of birth, automatically select an option for the zodiac question
+      if (currentQuestion.id === "q2" && quizData.questions[currentQuestionIndex + 1].questionType === "zodiac") {
+        // For zodiac question, we'll auto-select the continue option
+        const zodiacQuestion = quizData.questions[currentQuestionIndex + 1]
+        const continueOption = zodiacQuestion.options[0]
+        handleOptionSelect(zodiacQuestion.id, continueOption.id, true, false)
+      }
+      
       setCurrentQuestionIndex(currentQuestionIndex + 1)
     } else {
       // Calculate results
@@ -142,6 +209,11 @@ export default function Quiz({ quizData, initialGender }: QuizProps) {
   const canContinue = () => {
     if (!currentQuestion) return false
 
+    // For zodiac question, always allow continue
+    if (currentQuestion.questionType === "zodiac") {
+      return true;
+    }
+
     const currentAnswers = answers[currentQuestion.id] || []
 
     // Date of birth question special case
@@ -188,6 +260,7 @@ export default function Quiz({ quizData, initialGender }: QuizProps) {
                 question={currentQuestion}
                 selectedOptions={answers[currentQuestion.id] || []}
                 onOptionSelect={handleOptionSelectWrapped}
+                zodiacData={zodiacData}
               />
             </motion.div>
           </AnimatePresence>
@@ -197,7 +270,7 @@ export default function Quiz({ quizData, initialGender }: QuizProps) {
             disabled={!canContinue()}
             onClick={handleContinue}
           >
-            Continue
+            {currentQuestion.questionType === "zodiac" ? "Lanjutkan" : "Continue"}
           </Button>
         </div>
       ) : (

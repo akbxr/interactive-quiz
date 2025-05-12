@@ -11,6 +11,7 @@ export const quizData: QuizData = {
       subtitle: "Choose all that apply",
       multiSelect: true,
       minSelections: 1,
+      questionType: "standard",
       options: [
         {
           id: "q1-a",
@@ -108,6 +109,7 @@ export const quizData: QuizData = {
       subtitle: "Select your date of birth",
       multiSelect: false,
       requireDateOfBirth: true,
+      questionType: "dob",
       options: [
         {
           id: "q2-a",
@@ -192,10 +194,26 @@ export const quizData: QuizData = {
       ],
     },
     {
+      id: "q2b",
+      text: "Your Zodiac Sign",
+      subtitle: "Based on your birth date",
+      multiSelect: false,
+      questionType: "zodiac",
+      options: [
+        {
+          id: "q2b-a",
+          text: "Continue",
+          icon: "✨",
+          isHidden: true,
+        }
+      ],
+    },
+    {
       id: "q3",
       text: "What time of day were you born?",
       subtitle: "Select the closest option",
       multiSelect: false,
+      questionType: "standard",
       options: [
         {
           id: "q3-a",
