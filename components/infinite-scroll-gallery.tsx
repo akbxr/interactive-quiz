@@ -20,7 +20,7 @@ const galleryData = [
     {
       src: "/placeholder.svg?height=400&width=300",
       alt: "Book pages",
-      height: 180,
+      height: 200,
     },
   ],
   [
@@ -37,7 +37,7 @@ const galleryData = [
     {
       src: "/placeholder.svg?height=400&width=300",
       alt: "Moon sign book",
-      height: 220,
+      height: 240,
     },
   ],
   [
@@ -54,7 +54,7 @@ const galleryData = [
     {
       src: "/placeholder.svg?height=400&width=300",
       alt: "Couple with books",
-      height: 220,
+      height: 240,
     },
   ],
 ];
